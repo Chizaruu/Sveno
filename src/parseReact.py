@@ -81,7 +81,7 @@ def parseCodebase(filesInFolder: list) -> list:
 
     for file in filesInFolder:
         _, extension = path.splitext(file)
-        with open(file, 'r') as fd:
+        with open(file, 'r', encoding='utf-8', errors='replace') as fd:
             content = fd.read()
             if extension not in SOURCE_EXTENSIONS:
                 files += [handleUtilFile(file, content)]

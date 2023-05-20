@@ -1,18 +1,16 @@
 import regex
-from reactTypes import *
-from parser.useRegex import useRegex
 
 def parseReactHook(content, html, functions, variables):
-    hookParser = r'\s*\((.*)\))'
-    state = useRegex("useState", content, None)
-    for var in state:
-        variables.append(Variable("let", var[1], var[3]))
-        hookParser = regex.compile(f'({var[2]}{hookParser}', regex.MULTILINE)
-        for func in functions:
-            matches = hookParser.findall(func.content)
+    hooks = regex.findall(r'(\n|^) *(use[A-Z][a-zA-Z0-9]*)', content)
+    for hook in hooks:
+        var = regex.search(r'(?<!return )' + hook[1] + r'( *\(.*\))? *;', content)
+        if var:
+            hookParser = regex.compile(f'({var[2]})(( *\(.*\))? *;)')
+            matches = hookParser.findall(html)
             for match in matches:
-                func.content = func.content.replace(match[0], f'{var[1]} = {match[1]}')
-        matches = hookParser.findall(html)
-        for match in matches:
-            html = html.replace(match[0], f'{var[1]} = {match[1]}')
+                replacement = f'let {match[0]}'
+                if match[1].strip() != '':
+                    replacement += f' = {match[1]}'
+                replacement += ';\n'
+                html = html.replace(match[0] + match[1], replacement)
     return html, functions, variables
